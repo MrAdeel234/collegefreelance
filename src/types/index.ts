@@ -22,7 +22,7 @@ export interface Application {
   projectId: string;
   studentId: string;
   coverLetter: string;
-  status: 'pending' | 'accepted' | 'rejected';
+  status: 'pending' | 'accepted' | 'rejected' | 'completed';
 }
 
 export interface Feedback {
