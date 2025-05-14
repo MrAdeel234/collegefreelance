@@ -1,24 +1,19 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useAuthStore } from '../store/authStore';
 
-interface NavbarProps {
-  isLoggedIn: boolean;
-  userType: 'student' | 'client' | null;
-  onLogout: () => void;
-}
-
-const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, userType, onLogout }) => {
+const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+
+  const { isLoggedIn, userType, logout } = useAuthStore();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <nav className="bg-white shadow-lg relative">
@@ -79,14 +74,14 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, userType, onLogout }) => {
                     Browse Projects
                   </Link>
                   <Link
-                    to="/applications"
+                    to="/my-projects"
                     className={`${
                       isActive('/applications') 
                         ? 'border-blue-500 text-blue-600' 
                         : 'border-transparent text-gray-500 hover:border-blue-500 hover:text-blue-600'
                     } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
                   >
-                    My Applications
+                    My Projects
                   </Link>
                 </>
               )}
@@ -126,7 +121,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, userType, onLogout }) => {
               </div>
             ) : (
               <button
-                onClick={onLogout}
+                onClick={logout}
                 className="text-white bg-red-600 hover:bg-red-700 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
               >
                 Sign Out
@@ -259,7 +254,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, userType, onLogout }) => {
               <div className="px-4">
                 <button
                   onClick={() => {
-                    onLogout();
+                    logout();
                     toggleMenu();
                   }}
                   className="block w-full px-4 py-3 text-center rounded-lg text-base font-medium text-white bg-red-600 hover:bg-red-700 transition-all duration-200"

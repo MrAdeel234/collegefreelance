@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeftIcon, BriefcaseIcon } from '@heroicons/react/24/outline';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeftIcon, BriefcaseIcon } from "@heroicons/react/24/outline";
 
 interface Project {
   id: string;
@@ -9,20 +9,22 @@ interface Project {
   budget: number;
   deadline: string;
   skills: string[];
-  status: 'open' | 'assigned' | 'completed';
+  status: "open" | "assigned" | "completed";
   applications: number;
 }
 
 const PostProject: React.FC = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<Omit<Project, 'id' | 'applications'>>({
-    title: '',
-    description: '',
+  const [formData, setFormData] = useState<
+    Omit<Project, "id" | "applications">
+  >({
+    title: "",
+    description: "",
     budget: 0,
-    deadline: '',
+    deadline: "",
     skills: [],
-    status: 'open'
+    status: "open",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,46 +32,63 @@ const PostProject: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // In a real app, we would save this to a database
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Create new project object with generated ID and applications count
-      const newProject: Project = {
-        ...formData,
-        id: Date.now().toString(), // Generate a temporary ID
-        applications: 0
+      // Extract client_id from localStorage
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const client_id = user.client_id; // Assuming `id` is the key for client_id
+
+      if (!client_id) {
+        console.error("Client ID not found");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Prepare form data for API request
+      const projectData = {
+        client_id,
+        title: formData.title,
+        description: formData.description,
+        budget: formData.budget,
+        deadline: formData.deadline,
+        skills_required: formData.skills,
       };
 
-      // Get existing projects from localStorage
-      const existingProjects = JSON.parse(localStorage.getItem('projects') || '[]');
-      
-      // Add new project to the list
-      const updatedProjects = [...existingProjects, newProject];
-      
-      // Save updated projects list to localStorage
-      localStorage.setItem('projects', JSON.stringify(updatedProjects));
-      
-      // Navigate back to dashboard
-      navigate('/client-dashboard');
+      // Send project data to backend API
+      const response = await fetch("http://localhost:6001/projects", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(projectData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        // Project was created successfully
+        navigate("/client-dashboard"); // Navigate to dashboard or project list
+      } else {
+        console.error("Error creating project:", result.message);
+      }
     } catch (error) {
-      console.error('Error posting project:', error);
+      console.error("Error posting project:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: name === 'budget' ? Number(value) : value
+      [name]: name === "budget" ? Number(value) : value,
     }));
   };
 
   const handleSkillsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const skills = e.target.value.split(',').map(skill => skill.trim());
-    setFormData(prev => ({ ...prev, skills }));
+    const skills = e.target.value.split(",").map((skill) => skill.trim());
+    setFormData((prev) => ({ ...prev, skills }));
   };
 
   return (
@@ -98,7 +117,10 @@ const PostProject: React.FC = () => {
           <div className="px-6 py-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="title"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Project Title
                 </label>
                 <input
@@ -114,7 +136,10 @@ const PostProject: React.FC = () => {
               </div>
 
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Project Description
                 </label>
                 <textarea
@@ -131,7 +156,10 @@ const PostProject: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="budget" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="budget"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Budget (USD)
                   </label>
                   <div className="relative">
@@ -153,7 +181,10 @@ const PostProject: React.FC = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="deadline" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="deadline"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Deadline
                   </label>
                   <input
@@ -169,14 +200,17 @@ const PostProject: React.FC = () => {
               </div>
 
               <div>
-                <label htmlFor="skills" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="skills"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Required Skills
                 </label>
                 <input
                   type="text"
                   id="skills"
                   name="skills"
-                  value={formData.skills.join(', ')}
+                  value={formData.skills.join(", ")}
                   onChange={handleSkillsChange}
                   className="block w-full px-4 py-3 text-gray-900 border-2 border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:border-gray-300"
                   placeholder="e.g., React, Node.js, UI/UX Design"
@@ -202,14 +236,30 @@ const PostProject: React.FC = () => {
                 >
                   {isSubmitting ? (
                     <span className="flex items-center">
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
                       </svg>
                       Posting...
                     </span>
                   ) : (
-                    'Post Project'
+                    "Post Project"
                   )}
                 </button>
               </div>
@@ -221,4 +271,4 @@ const PostProject: React.FC = () => {
   );
 };
 
-export default PostProject; 
+export default PostProject;

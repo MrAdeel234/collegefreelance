@@ -1,52 +1,67 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { BriefcaseIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { BriefcaseIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
 
 interface Application {
   id: string;
   projectId: string;
   projectTitle: string;
-  status: 'pending' | 'accepted' | 'rejected';
+  status: "pending" | "accepted" | "rejected";
   appliedDate: string;
   budget: number;
   deadline: string;
 }
 
 const Applications: React.FC = () => {
-  // Dummy applications data
-  const applications: Application[] = [
-    {
-      id: '1',
-      projectId: '1',
-      projectTitle: 'Website Development for Local Restaurant',
-      status: 'pending',
-      appliedDate: '2024-03-15',
-      budget: 500,
-      deadline: '2024-05-15'
-    },
-    {
-      id: '2',
-      projectId: '2',
-      projectTitle: 'Mobile App for Campus Events',
-      status: 'accepted',
-      appliedDate: '2024-03-10',
-      budget: 800,
-      deadline: '2024-06-01'
-    }
-  ];
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const getStatusColor = (status: Application['status']) => {
+  const studentId = "4"; // Replace this with the actual student ID, possibly from auth context or props
+
+  // Fetch applications from the API when the component mounts
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:6001/applications/my-projects/${studentId}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch applications");
+        }
+        const data = await response.json();
+        setApplications(data.applications);
+      } catch (error: any) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApplications();
+  }, [studentId]);
+
+  const getStatusColor = (status: Application["status"]) => {
     switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'accepted':
-        return 'bg-green-100 text-green-800';
-      case 'rejected':
-        return 'bg-red-100 text-red-800';
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "accepted":
+        return "bg-green-100 text-green-800";
+      case "rejected":
+        return "bg-red-100 text-red-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -58,8 +73,7 @@ const Applications: React.FC = () => {
           <ArrowLeftIcon className="h-5 w-5 mr-2" />
           Back to Dashboard
         </Link>
-        <h1 className="text-3xl font-bold text-gray-900">My Applications</h1>
-        <p className="mt-2 text-gray-600">Track the status of your project applications</p>
+        <h1 className="text-3xl font-bold text-gray-900">My Projects</h1>
       </div>
 
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -67,19 +81,28 @@ const Applications: React.FC = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Project
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Applied Date
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Budget
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Deadline
                 </th>
               </tr>
@@ -94,11 +117,6 @@ const Applications: React.FC = () => {
                         {application.projectTitle}
                       </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(application.status)}`}>
-                      {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
-                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(application.appliedDate).toLocaleDateString()}
@@ -119,4 +137,4 @@ const Applications: React.FC = () => {
   );
 };
 
-export default Applications; 
+export default Applications;
